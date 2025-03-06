@@ -49,6 +49,13 @@ dependencies:
   image_picker:
   permission_handler:
   intl: ^0.20.2
+  flutter_local_notifications:
+  timezone:
+  shared_preferences:
+  uuid:
+  get_it:
+ # For selecting images from gallery/camera
+  cached_network_image: ^3.2.3  # Fo
 
 
 dev_dependencies:

@@ -1,6 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" />
+    <queries>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+    </queries>
     <queries>
         <!-- If your app checks for SMS support -->
         <intent>
@@ -18,6 +25,7 @@
         </intent>
     </queries>
     <application
+        android:enableOnBackInvokedCallback="true"
         android:label="medhub"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">

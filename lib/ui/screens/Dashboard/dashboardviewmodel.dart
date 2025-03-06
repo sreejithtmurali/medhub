@@ -6,6 +6,7 @@ import 'package:stacked/stacked.dart';
 import '../../../app/app.router.dart';
 import '../../../app/utils.dart';
 import '../Profile/Profile_view.dart';
+import '../profileupdate/profileupdate_view.dart';
 
 class DashboardviewModel extends BaseViewModel {
   var current=0;

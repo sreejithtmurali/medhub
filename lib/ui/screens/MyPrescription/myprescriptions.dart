@@ -15,7 +15,7 @@ class MyPrescriptions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<MyPrescriptionsModel>.reactive(
-      // onViewModelReady: (model) => model.navigatelogin(),
+       onViewModelReady: (model) => model.init(),
       builder: (context, model, child) {
         return Scaffold(
           appBar: AppBar(
@@ -23,23 +23,23 @@ class MyPrescriptions extends StatelessWidget {
             title: Text("Add Prescriptions",style: TextStyle(color: Colors.white),),),
           body: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: GridView.builder(itemCount: 10, itemBuilder: (BuildContext context, int index) {
+            child: GridView.builder(itemCount: model.mylist!.length, itemBuilder: (BuildContext context, int index) {
               return Container(
                 height: 200,
                 decoration: BoxDecoration(
                   border: Border.all(width: .2)
                 ),
                 child: Column(children: [
-                  Image.asset("assets/images/prescription.png",width: double.maxFinite,height: 150,fit: BoxFit.cover,),
+                  Image.network("${model.baseUrl}${model.mylist![index].image}",width: double.maxFinite,height: 150,fit: BoxFit.cover,),
                   Text(
-                    'Dr.Shihab',
+                    '${model.mylist![index].doctor}',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    'Date : 24/01/2025',
+                    '${model.mylist![index].date}',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,

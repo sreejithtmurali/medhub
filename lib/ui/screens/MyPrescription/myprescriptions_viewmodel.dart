@@ -6,22 +6,22 @@ import 'package:stacked/stacked.dart';
 
 import '../../../app/app.router.dart';
 import '../../../app/utils.dart';
+import '../../../models/mypres/Data.dart';
+import '../../../services/api_service.dart';
 
 class MyPrescriptionsModel extends BaseViewModel {
-  final ImagePicker picker = ImagePicker();
-  XFile? image, prescription;
-  Future<XFile?> pickimage() async {
-    if (Permission.camera.isDenied == true) {
-      await Permission.camera.request();
-    }
-    var picked = await picker.pickImage(source: ImageSource.camera);
-    if (picked != null) {
-      return picked;
-    }
-  }
+  List<Prescription>?mylist=[];
 
+  static const environment = ApiEnvironment.dev;
+
+  String baseUrl = environment.baseUrl;
   void navaddpres() {
     navigationService.navigateTo(Routes.addMyPrescriptions);
+  }
+
+  init() async {
+   mylist= await apiService.getallprescription();
+   notifyListeners();
   }
 
 

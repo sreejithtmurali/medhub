@@ -3,20 +3,33 @@ import 'package:medhub/ui/screens/Dashboard/dashboardview.dart';
 //import 'package:medhub/ui/screens/MyPrescription/addmyprescriptions.dart';
 import 'package:medhub/ui/screens/Profile/Profile_view.dart';
 import 'package:medhub/ui/screens/Sosview/sosview.dart';
+import 'package:medhub/ui/screens/add_booking_view/add_booking_view.dart';
+import 'package:medhub/ui/screens/add_emergency_contact/add_emergency_contact_view.dart';
 import 'package:medhub/ui/screens/add_medication/AddMedicationView.dart';
-import 'package:medhub/ui/screens/login/login_view.dart';
+import 'package:medhub/ui/screens/add_reminder_view/add_reminder_view.dart';
+import 'package:medhub/ui/screens/my_bookings_view/my_bookings_view.dart';
+import 'package:medhub/ui/screens/my_reminders_view/my_reminders_view.dart';
+import 'package:medhub/ui/screens/profileupdate/profileupdate_view.dart';
+import 'package:medhub/ui/screens/register/register_view.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 import '../services/api_service.dart';
 
+import '../services/emergency_contact_service.dart';
 import '../services/medicationservice.dart';
+import '../services/notification_service.dart';
+import '../services/reminder_service.dart';
+import '../services/user_service.dart';
 import '../ui/screens/DoctorView/Doctor_view.dart';
 import '../ui/screens/MyPrescription/myprescriptions.dart';
 import '../ui/screens/MyPrescriptionAdd/addmyprescriptions.dart';
+import '../ui/screens/My_medication/myMedicationView.dart';
 import '../ui/screens/doctorslisting/doctorslist_view.dart';
 import '../ui/screens/home/home_view.dart';
 import '../ui/screens/hospital/hospitalview.dart';
+import '../ui/screens/login/login_view.dart';
+import '../ui/screens/myemergencycontacts/myemergencycontactsview.dart';
 import '../ui/screens/splash/splash_view.dart';
 
 
@@ -33,14 +46,28 @@ import '../ui/screens/splash/splash_view.dart';
     MaterialRoute(page: HospitalDetailView),
     MaterialRoute(page: MyPrescriptions),
     MaterialRoute(page: AddMyPrescriptions),
-    MaterialRoute(page: AddMedicationView)
+    MaterialRoute(page: AddMedicationView),
+    MaterialRoute(page: ViewAllMedications),
+    MaterialRoute(page: MyEmergencyContactView),
+    MaterialRoute(page: AddEmergencyContactView),
+    MaterialRoute(page: AddBookingView),
+    MaterialRoute(page: MyBookingsView),
+    MaterialRoute(page: MyRemindersView),
+    MaterialRoute(page: AddReminderView),
+    MaterialRoute(page: ProfileUpdteView),
+    MaterialRoute(page: RegisterView),
   ],
   dependencies: [
     LazySingleton(classType: ApiService),
     LazySingleton(classType: NavigationService),
     LazySingleton(classType: DialogService),
     LazySingleton(classType: BottomSheetService),
-    LazySingleton(classType:MedicationService),
+    LazySingleton(classType: MedicationService),
+    LazySingleton(classType: EmergencyContactService),
+    LazySingleton(classType: ReminderService),
+    LazySingleton(classType: NotificationService),
+    LazySingleton(classType: UserService)
+
 
   ],
 )

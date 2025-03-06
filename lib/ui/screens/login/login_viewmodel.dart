@@ -1,29 +1,48 @@
-import 'dart:async';
-
 import 'package:flutter/cupertino.dart';
-import 'package:medhub/models/User.dart';
-import 'package:stacked/stacked.dart';
 
+import 'package:stacked/stacked.dart';
 import '../../../app/app.locator.dart';
+
 import '../../../app/app.router.dart';
 import '../../../app/utils.dart';
+
+import '../../../models/User.dart';
 import '../../../services/api_service.dart';
 
+import '../../../services/user_service.dart';
+ // Import the Product class
+
 class LoginViewModel extends BaseViewModel {
-  TextEditingController uname=TextEditingController();
-  TextEditingController psw=TextEditingController();
-  TextEditingController email=TextEditingController();
-  var apiservice=locator<ApiService>();
-  var formkey=GlobalKey<FormState>();
-  bool isPasswordVisible = false;
-  final TextEditingController dateController = TextEditingController();
-  String? selectedGender;
-  void login(){
-    if(formkey.currentState!.validate()){
-      if(selectedGender!=null){
-        navigationService.navigateTo(Routes.dashboardview);
+
+void navregister(){
+ navigationService.navigateTo(Routes.registerView);
+}
+  final formkey=GlobalKey<FormState>();
+
+TextEditingController namecontroller = TextEditingController();
+TextEditingController password = TextEditingController();
+
+
+
+  Future<void> login() async {
+    if (formkey.currentState!.validate()) {
+      User? user = await apiService.login(
+          email: namecontroller.text,
+          password: password.text);
+      if (user != null) {
+        bool saved = await userService.saveUser(user);
+        if (saved == true) {
+        navigationService.pushNamedAndRemoveUntil(Routes.dashboardview);
+        }
       }
     }
   }
-
+  navRegister(){
+ navigationService.navigateTo(Routes.registerView);
+  }
+bool isviewable=true;
+  void togglepass() {
+    isviewable=!isviewable;
+    notifyListeners();
+  }
 }
