@@ -1,4 +1,6 @@
+
 import 'package:flutter/material.dart';
+import 'package:medhub/app/utils.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import '../../../services/medicationservice.dart';
@@ -109,6 +111,15 @@ class AddMedicationViewModel extends BaseViewModel {
       // Prepare upload data
       List<Map<String, dynamic>> uploadData =
       medications.map((med) => med.toMap()).toList();
+      List<Map<String, dynamic>> uploadData2 = medications.map((med) {
+        // Create a map from the medication object
+        Map<String, dynamic> medMap = med.toMap();
+
+        // Remove the ID field
+        medMap.remove('id');
+
+        return medMap;
+      }).toList();
 
       // TODO: Replace with actual upload logic to your backend
       print('Uploading medications: $uploadData');
@@ -117,10 +128,10 @@ class AddMedicationViewModel extends BaseViewModel {
       while (medications.isNotEmpty) {
         _medicationService.deleteMedication(medications.first.id!);
       }
-
+   await apiService.uploadMedications(uploadData2);
       // Show success message
       // You might want to replace this with a proper dialog or snackbar
-      print('Medications uploaded successfully');
+     // print('Medications uploaded successfully');
     } catch (e) {
       // Handle upload errors
       print('Upload failed: $e');

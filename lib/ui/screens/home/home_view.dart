@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:medhub/models/getalldoctors/Data.dart';
 import 'package:stacked/stacked.dart';
 
 import '../../../constants/assets.gen.dart';
+import '../../../models/allbookings/GetAllBookings.dart';
 import '../../tools/screen_size.dart';
 import 'home_viewmodel.dart';
+import 'package:medhub/models/hospitalall/Data.dart';
 
 class HomeView extends StatelessWidget {
   HomeView({super.key});
@@ -11,7 +14,9 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<HomeViewModel>.reactive(
-      onViewModelReady: (model) {},
+      onViewModelReady: (model) {
+        model.init();
+      },
       builder: (context, model, child) {
         return Scaffold(
           backgroundColor: Colors.white,
@@ -62,67 +67,42 @@ class HomeView extends StatelessWidget {
 
                     // Appointment Cards
                     SizedBox(
-                      height: 120,
-                      child: ListView(
+                      height: 250,
+                      child: ListView.separated(
                         scrollDirection: Axis.horizontal,
-                        children: [
-                          _buildAppointmentCard(
-                            context,
-                            'Dr. Carly Angel',
-                            'Tele Consultation',
-                            'Waiting for user',
-                          ),
-                          _buildAppointmentCard(
-                            context,
-                            'Dr. Sabir',
-                            'Tele Consultation',
-                            'Waiting for user',
-                          ),
-                        ],
-                      ),
+                        padding: const EdgeInsets.all(16),
+                        itemCount: model.mybookings!.length,
+                        separatorBuilder: (context, index) => const SizedBox(width: 12),
+                        itemBuilder: (context, index) {
+                          final booking = model.mybookings![index];
+                          return _buildBookingCard(booking,model);
+                        },
+                      )
                     ),
                     const SizedBox(height: 24),
 
                     // Doctor Speciality
 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Doctor Specialty',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {},
-                          child: const Text('See all'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //   children: [
+                    //     const Text(
+                    //       'Doctor Specialty',
+                    //       style: TextStyle(
+                    //         fontSize: 16,
+                    //         fontWeight: FontWeight.bold,
+                    //       ),
+                    //     ),
+                    //     TextButton(
+                    //       onPressed: () {},
+                    //       child: const Text('See all'),
+                    //     ),
+                    //   ],
+                    // ),
+                    // const SizedBox(height: 16),
+                    //
+                    // // Specialty Grid
 
-                    // Specialty Grid
-                    GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 4,
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      children: [
-                        _buildSpecialtyItem(
-                            'Pulmonologist', Icons.coronavirus, Colors.purple),
-                        _buildSpecialtyItem(
-                            'Pediatrician', Icons.child_care, Colors.blue),
-                        _buildSpecialtyItem('Ophthalmologist',
-                            Icons.remove_red_eye, Colors.green),
-                        _buildSpecialtyItem(
-                            'Mental Health', Icons.psychology, Colors.orange),
-                        _buildSpecialtyItem(
-                            'Dermatology', Icons.healing, Colors.red),
-                      ],
-                    ),
                     const SizedBox(height: 16),
 
                     // Popular Doctors
@@ -146,23 +126,24 @@ class HomeView extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
+                    ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: model.doctorslist!.length > 2
+                          ? 2
+                          : model.doctorslist!.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return _buildDoctorCard(
+                          model,
+                          model.doctorslist![index],
+                        );
+                      },
+                      separatorBuilder: (BuildContext context, int index) {
+                        return const SizedBox(height: 12);
+                      },
+                    ),
 
                     // Doctor List
-                    _buildDoctorCard(
-                      model,
-                      'Dr. Kamala Ragimova',
-                      'Cardiologist',
-                      '4.9',
-                      '10:30 AM-2:00 PM',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildDoctorCard(
-                      model,
-                      'Dr. Jacob Jones',
-                      'Pediatrician',
-                      '4.8',
-                      '10:30 AM-4:30 PM',
-                    ),
+
                     const SizedBox(height: 24),
 
                     // Popular Doctors
@@ -177,7 +158,9 @@ class HomeView extends StatelessWidget {
                           ),
                         ),
                         TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            model.navhospitallist();
+                          },
                           child: const Text('See all'),
                         ),
                       ],
@@ -185,21 +168,28 @@ class HomeView extends StatelessWidget {
                     const SizedBox(height: 16),
 
                     // Doctor List
-                    _buildHospitalCard(
-                      model,
-                      'Sunrise Hospital',
-                      'Multi Speciality Hospital',
-                      '4.9',
-                      'Kakkanad,kerala',
+                    ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: model.hospitallist!.length >= 2
+                          ? 2
+                          : model.hospitallist!.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return _buildHospitalCard(
+                            model, model.hospitallist![index]!);
+                      },
+                      separatorBuilder: (BuildContext context, int index) {
+                        return const SizedBox(height: 12);
+                      },
                     ),
+
                     const SizedBox(height: 12),
-                    _buildHospitalCard(
-                      model,
-                      'Corparative Hospital',
-                      'Multi Speciality Hospital',
-                      '4.9',
-                      'Kakkanad,kerala',
-                    ),
+                    // _buildHospitalCard(
+                    //   model,
+                    //   'Corparative Hospital',
+                    //   'Multi Speciality Hospital',
+                    //   '4.9',
+                    //   'Kakkanad,kerala',
+                    // ),
                   ],
                 ),
               ),
@@ -211,102 +201,101 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildAppointmentCard(
-      BuildContext context, String doctorName, String type, String status) {
-    return Container(
-      width: MediaQuery.of(context).size.width - 100,
-      margin: const EdgeInsets.only(right: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-
-
-          Row(
-            children: [
-              const CircleAvatar(
-                radius: 16,
-                backgroundColor: Colors.blue,
-                child: Icon(Icons.person, color: Colors.white, size: 20),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        doctorName,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                      "Pediatric",
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.normal,
-                      ),
-                    ),)
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              "BookingID: #1234",
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-            ),),
-          const SizedBox(height: 4),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              "Booking Date: 12/10/2025- 11:10 AM",
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.normal,
-              ),
-            ),),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Text(
-                "Status: ",
-                style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black
-                ),
-              ),
-              Text(
-                "Pending",
-                style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildAppointmentCard(
+  //     BuildContext context, String doctorName, String type, String status) {
+  //   return Container(
+  //     width: MediaQuery.of(context).size.width - 100,
+  //     margin: const EdgeInsets.only(right: 12),
+  //     padding: const EdgeInsets.all(12),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(12),
+  //       border: Border.all(color: Colors.grey[300]!),
+  //     ),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Row(
+  //           children: [
+  //             const CircleAvatar(
+  //               radius: 16,
+  //               backgroundColor: Colors.blue,
+  //               child: Icon(Icons.person, color: Colors.white, size: 20),
+  //             ),
+  //             const SizedBox(width: 8),
+  //             Expanded(
+  //               child: Column(
+  //                 children: [
+  //                   Align(
+  //                     alignment: Alignment.centerLeft,
+  //                     child: Text(
+  //                       doctorName,
+  //                       style: const TextStyle(
+  //                         fontSize: 14,
+  //                         fontWeight: FontWeight.bold,
+  //                       ),
+  //                     ),
+  //                   ),
+  //                   Align(
+  //                     alignment: Alignment.centerLeft,
+  //                     child: Text(
+  //                       "Pediatric",
+  //                       style: const TextStyle(
+  //                         fontSize: 10,
+  //                         fontWeight: FontWeight.normal,
+  //                       ),
+  //                     ),
+  //                   )
+  //                 ],
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //         const SizedBox(height: 8),
+  //         Align(
+  //           alignment: Alignment.centerLeft,
+  //           child: Text(
+  //             "BookingID: #1234",
+  //             style: const TextStyle(
+  //               fontSize: 10,
+  //               fontWeight: FontWeight.bold,
+  //             ),
+  //           ),
+  //         ),
+  //         const SizedBox(height: 4),
+  //         Align(
+  //           alignment: Alignment.centerLeft,
+  //           child: Text(
+  //             "Booking Date: 12/10/2025- 11:10 AM",
+  //             style: const TextStyle(
+  //               fontSize: 10,
+  //               fontWeight: FontWeight.normal,
+  //             ),
+  //           ),
+  //         ),
+  //         const SizedBox(height: 4),
+  //         Row(
+  //           children: [
+  //             Text(
+  //               "Status: ",
+  //               style: const TextStyle(
+  //                   fontSize: 10,
+  //                   fontWeight: FontWeight.bold,
+  //                   color: Colors.black),
+  //             ),
+  //             Text(
+  //               "Pending",
+  //               style: const TextStyle(
+  //                   fontSize: 10,
+  //                   fontWeight: FontWeight.bold,
+  //                   color: Colors.blue),
+  //             ),
+  //           ],
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildSpecialtyItem(String title, IconData icon, Color color) {
     return Container(
@@ -335,11 +324,10 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildHospitalCard(HomeViewModel model,
-      String name, String specialty, String rating, String timing) {
+  Widget _buildHospitalCard(HomeViewModel model, Hospital hospital) {
     return InkWell(
-      onTap: (){
-        model.navhospital();
+      onTap: () {
+        model.navhospital(hospital);
       },
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -355,8 +343,7 @@ class HomeView extends StatelessWidget {
               height: 100,
               decoration: BoxDecoration(
                   image: DecorationImage(
-                      image: NetworkImage(
-                          "https://sunrisehospitalcochin.com/storage/location/R25gCH0aiQItlqqHta2lEaqEj2gxwcLVgvLaYOH4.png"),
+                      image: NetworkImage("${model.baseUrl}${hospital.image}"),
                       fit: BoxFit.cover),
                   borderRadius: BorderRadius.circular(5)),
             ),
@@ -369,7 +356,7 @@ class HomeView extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        name,
+                        "${hospital.name}",
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -380,7 +367,7 @@ class HomeView extends StatelessWidget {
                           const Icon(Icons.star, color: Colors.amber, size: 16),
                           const SizedBox(width: 4),
                           Text(
-                            rating,
+                            "${hospital.rating}",
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -392,7 +379,8 @@ class HomeView extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    specialty,
+                    maxLines: 1,
+                    "${hospital.about}",
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
@@ -408,7 +396,7 @@ class HomeView extends StatelessWidget {
                               size: 16, color: Colors.grey[600]),
                           const SizedBox(width: 4),
                           Text(
-                            timing,
+                            "${hospital.location}",
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey[600],
@@ -422,8 +410,7 @@ class HomeView extends StatelessWidget {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color:
-                               Colors.blue,
+                          color: Colors.blue,
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: Text(
@@ -445,11 +432,10 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildDoctorCard(HomeViewModel model, String name, String specialty,
-      String rating, String timing) {
+  Widget _buildDoctorCard(HomeViewModel model, Doctor doctor) {
     return InkWell(
       onTap: () {
-        model.navdoctor();
+        model.navdoctor(doctor);
       },
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -460,10 +446,9 @@ class HomeView extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const CircleAvatar(
+            CircleAvatar(
               radius: 35,
-              backgroundImage: NetworkImage(
-                  "https://sunrisehospitalcochin.com/storage/doctor/profile_image/irg33w5TN2RIuw885nFK3XUMn8l5DsxOYhfwilOG.jpg"),
+              backgroundImage: NetworkImage("${model.baseUrl}${doctor.image}"),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -474,7 +459,7 @@ class HomeView extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        name,
+                        "${doctor.name}",
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -485,7 +470,7 @@ class HomeView extends StatelessWidget {
                           const Icon(Icons.star, color: Colors.amber, size: 16),
                           const SizedBox(width: 4),
                           Text(
-                            rating,
+                            "${doctor.rating}",
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -497,7 +482,7 @@ class HomeView extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    specialty,
+                    "${doctor.department}",
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
@@ -509,11 +494,11 @@ class HomeView extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.access_time,
+                          Icon(Icons.local_hospital,
                               size: 16, color: Colors.grey[600]),
                           const SizedBox(width: 4),
                           Text(
-                            timing,
+                            "${doctor.hospitalName}",
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey[600],
@@ -527,7 +512,7 @@ class HomeView extends StatelessWidget {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color:  Colors.blue,
+                          color: Colors.blue,
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: Text(
@@ -548,4 +533,72 @@ class HomeView extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget _buildBookingCard(GetAllBookings booking, HomeViewModel viewModel) {
+  return Card(
+    elevation: 3,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${booking.doctor!.name}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade100,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${booking.doctor!.department}',
+                  style: TextStyle(
+                    color: Colors.blue.shade800,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildInfoRow(Icons.confirmation_number, 'Booking ID: ${booking.id}'),
+          const SizedBox(height: 8),
+          _buildInfoRow(
+            Icons.calendar_today,
+            'Date: ${booking.selectedDate}',
+          ),
+          const SizedBox(height: 8),
+          _buildInfoRow(Icons.access_time, 'Time: ${booking.selectedTime}'),
+          const SizedBox(height: 16),
+
+        ],
+      ),
+    ),
+  );
+}
+
+Widget _buildInfoRow(IconData icon, String text) {
+  return Row(
+    children: [
+      Icon(icon, size: 16, color: Colors.grey.shade600),
+      const SizedBox(width: 8),
+      Text(
+        text,
+        style: TextStyle(color: Colors.grey.shade800),
+      ),
+    ],
+  );
 }

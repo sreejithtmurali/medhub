@@ -12,7 +12,7 @@ class SplashView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<SplashViewModel>.reactive(
-      onViewModelReady: (model) => model.navigatelogin(),
+      onViewModelReady: (model) => model.init(),
       builder: (context, model, child) {
         return Scaffold(
           backgroundColor: Color(0xff5272ff),

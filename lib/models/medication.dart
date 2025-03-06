@@ -20,10 +20,10 @@ class Medication {
     return {
       'id': id,
       'name': name,
-      'startDate': startDate.toIso8601String(),
-      'endDate': endDate.toIso8601String(),
-      'timeInterval': timeInterval,
-      'afterFood': afterFood,
+      'start_date': startDate.toIso8601String(),
+      'end_date': endDate.toIso8601String(),
+      'time_interval': timeInterval,
+      'after_food': afterFood,
     };
   }
 
@@ -32,10 +32,10 @@ class Medication {
     return Medication(
       id: map['id'],
       name: map['name'],
-      startDate: DateTime.parse(map['startDate']),
-      endDate: DateTime.parse(map['endDate']),
-      timeInterval: map['timeInterval'],
-      afterFood: map['afterFood'],
+      startDate: DateTime.parse(map['start_date']),
+      endDate: DateTime.parse(map['end_date']),
+      timeInterval: map['time_interval'],
+      afterFood: map['after_food'],
     );
   }
 }

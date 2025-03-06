@@ -6,12 +6,165 @@ import 'package:geolocator/geolocator.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:stacked/stacked.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
+
+import '../../../app/utils.dart';
+import '../../../models/getallemergency/Data.dart';
 
 class SOSViewModel extends BaseViewModel {
   final LocationService _locationService = LocationService();
   String emergencyContact = "911"; // Replace with actual emergency contact
   String ambulanceNumber = "102"; // Replace with actual ambulance number
   String? errorMessage;
+  String ?report="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf";
+  List<EmerContact>?emergencyContacts =[];
+
+  init() async {
+    emergencyContacts=   await apiService.getEmergencyContacts();
+    update_emergency_contacts(emergencyContacts);
+    notifyListeners();
+report=await apiService.getmyreport();
+notifyListeners();
+  }
+  Future<void> shareLocationWithMedicalHistory() async {
+    try {
+      setBusy(true);
+      errorMessage = null;
+
+      // Get current location
+      Position position = await _locationService.determinePosition();
+      String locationMessage =
+          'Emergency! I need help! My current location is:\n'
+          '📍 Latitude: ${position.latitude}\n'
+          '📍 Longitude: ${position.longitude}\n'
+          '🔗 Google Maps: https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}\n\n'
+          '📄 Attached: My Medical History PDF:https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf\n share this file with doctor';
+
+      // Download the medical history PDF
+      File medicalHistoryFile = await _downloadMedicalHistoryPdf(
+          '');
+
+      // Share both the PDF file and location message
+      await Share.shareXFiles(
+        [XFile(medicalHistoryFile.path)],
+        text: locationMessage,
+      );
+    } catch (e) {
+      errorMessage = _handleLocationError(e.toString());
+      notifyListeners();
+    } finally {
+      setBusy(false);
+    }
+  }
+  Future<void> shareViaWhatsApp() async {
+    try {
+      setBusy(true);
+      errorMessage = null;
+
+      // Check if emergency contacts exist
+      if (emergencyContacts == null || emergencyContacts!.isEmpty) {
+        errorMessage = 'No emergency contacts available';
+        notifyListeners();
+        return;
+      }
+
+      // Find the highest priority contact (1 > 2 > 3)
+      EmerContact? highestPriorityContact;
+      for (var contact in emergencyContacts!) {
+        if (contact.priority == "1") {
+          highestPriorityContact = contact;
+          break;
+        } else if (contact.priority == "2" && highestPriorityContact == null) {
+          highestPriorityContact = contact;
+        } else if (contact.priority == "3" && highestPriorityContact == null) {
+          highestPriorityContact = contact;
+        }
+      }
+
+      if (highestPriorityContact == null) {
+        errorMessage = 'No valid emergency contacts found';
+        notifyListeners();
+        return;
+      }
+
+      // Get current location
+      Position position = await _locationService.determinePosition();
+
+      // Ensure report URL is properly formatted
+
+
+      // Compose the message
+      String locationMessage =
+          '🚑 EMERGENCY ALERT! 🚑\n\n'
+          'I need immediate assistance!\n\n'
+          '📍 My Current Location:\n'
+          'Latitude: ${position.latitude}\n'
+          'Longitude: ${position.longitude}\n'
+          'Google Maps: https://www.google.com/maps/search/?api=1&query=${position
+          .latitude},${position.longitude}\n\n'
+          '📄 Medical History: $report\n\n'
+          'Please respond immediately!';
+
+      // Format phone number (remove any non-digit characters)
+      String phoneNumber = highestPriorityContact.phone.toString().replaceAll(
+          RegExp(r'[^0-9]'), '');
+
+      // Launch WhatsApp
+      await launchUrlString(
+        "whatsapp://send?phone=$phoneNumber&text=${Uri.encodeComponent(
+            locationMessage)}",
+        mode: LaunchMode.externalApplication,
+      );
+    } on Exception catch (e) {
+      errorMessage = 'Failed to share via WhatsApp: ${e.toString()}';
+      notifyListeners();
+    } finally {
+      setBusy(false);
+    }
+  }
+  // Future<void> shareViaWhatsApp() async {
+  //   try {
+  //     setBusy(true);
+  //     errorMessage = null;
+  //
+  //     // Get current location
+  //     Position position = await _locationService.determinePosition();
+  //
+  //     // Build emergency contacts information
+  //     String emergencyContactsInfo = '';
+  //     if (emergencyContacts != null && emergencyContacts!.isNotEmpty) {
+  //       emergencyContactsInfo = '\n\n🚨 Emergency Contacts:\n';
+  //       for (var contact in emergencyContacts!) {
+  //         emergencyContactsInfo +=
+  //         '👤 ${contact.name} (${contact.relationship}): ${contact.phone}\n';
+  //       }
+  //     }
+  //
+  //     String locationMessage =
+  //         '🚑 EMERGENCY ALERT! 🚑\n'
+  //         'I need immediate assistance!\n\n'
+  //         '📍 My Current Location:\n'
+  //         'Latitude: ${position.latitude}\n'
+  //         'Longitude: ${position.longitude}\n'
+  //         'Google Maps: https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}\n\n'
+  //         '📄 Medical History: https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
+  //         '$emergencyContactsInfo';
+  //
+  //     // Encode the message for WhatsApp URL
+  //     String encodedMessage = Uri.encodeComponent(locationMessage);
+  //
+  //     // Launch WhatsApp with the message
+  //     await launchUrlString(
+  //       "whatsapp://send?text=$encodedMessage",
+  //       mode: LaunchMode.externalApplication,
+  //     );
+  //   } catch (e) {
+  //     errorMessage = _handleLocationError(e.toString());
+  //     notifyListeners();
+  //   } finally {
+  //     setBusy(false);
+  //   }
+  // }
 
   Future<void> makeEmergencyCall() async {
     try {
@@ -40,36 +193,36 @@ class SOSViewModel extends BaseViewModel {
       notifyListeners();
     }
   }
-
-  Future<void> shareLocationWithMedicalHistory() async {
-    try {
-      setBusy(true);
-      errorMessage = null;
-
-      // Get current location
-      Position position = await _locationService.determinePosition();
-      String locationMessage =
-          'Emergency! I need help! My current location is:\n'
-          '📍 Latitude: ${position.latitude}\n'
-          '📍 Longitude: ${position.longitude}\n'
-          '🔗 Google Maps: https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}\n\n'
-          '📄 Attached: My Medical History PDF:https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf\n share this file with doctor';
-
-      // Download the medical history PDF
-      File medicalHistoryFile = await _downloadMedicalHistoryPdf(
-          'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf');
-
-      // Share both the PDF file and location message
-      await Share.share(
-        locationMessage// Attach location message
-      );
-    } catch (e) {
-      errorMessage = _handleLocationError(e.toString());
-      notifyListeners();
-    } finally {
-      setBusy(false);
-    }
-  }
+  //
+  // Future<void> shareLocationWithMedicalHistory() async {
+  //   try {
+  //     setBusy(true);
+  //     errorMessage = null;
+  //
+  //     // Get current location
+  //     Position position = await _locationService.determinePosition();
+  //     String locationMessage =
+  //         'Emergency! I need help! My current location is:\n'
+  //         '📍 Latitude: ${position.latitude}\n'
+  //         '📍 Longitude: ${position.longitude}\n'
+  //         '🔗 Google Maps: https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}\n\n'
+  //         '📄 Attached: My Medical History PDF:https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf\n share this file with doctor';
+  //
+  //     // Download the medical history PDF
+  //     File medicalHistoryFile = await _downloadMedicalHistoryPdf(
+  //         'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf');
+  //
+  //     // Share both the PDF file and location message
+  //     await Share.share(
+  //       locationMessage// Attach location message
+  //     );
+  //   } catch (e) {
+  //     errorMessage = _handleLocationError(e.toString());
+  //     notifyListeners();
+  //   } finally {
+  //     setBusy(false);
+  //   }
+  // }
 
 // Function to download the PDF
   Future<File> _downloadMedicalHistoryPdf(String url) async {
@@ -107,6 +260,41 @@ class SOSViewModel extends BaseViewModel {
   void openAppSettings() async {
     await Geolocator.openAppSettings();
   }
+
+  void update_emergency_contacts(List<EmerContact>? emergencyContacts) {
+    if (emergencyContacts == null || emergencyContacts.isEmpty) {
+      // Keep default values if no contacts are available
+      emergencyContact = "911";
+      ambulanceNumber = "102";
+      return;
+    }
+
+    // Sort contacts by priority (ascending order)
+    emergencyContacts.sort((a, b) => a.priority!.compareTo(b.priority.toString()));
+
+    // Find the highest priority contact (priority 1, then 2, then 3)
+    EmerContact? highestPriorityContact;
+    for (var contact in emergencyContacts) {
+      if (contact.priority == "1") {
+        highestPriorityContact = contact;
+        break; // Found highest priority, no need to check others
+      } else if (contact.priority == "2" && highestPriorityContact == null) {
+        highestPriorityContact = contact;
+      } else if (contact.priority == "3" && highestPriorityContact == null) {
+        highestPriorityContact = contact;
+      }
+    }
+
+    // Update emergency contact if found
+    if (highestPriorityContact != null) {
+      emergencyContact = highestPriorityContact.phone.toString();
+      print(emergencyContact);
+    }
+
+    // You might want to add similar logic for ambulanceNumber if needed
+    // For now, keeping it as default "102"
+  }
+
 }
 
 class LocationService {

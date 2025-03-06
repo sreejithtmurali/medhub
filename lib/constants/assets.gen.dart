@@ -52,8 +52,12 @@ class $AssetsImagesGen {
   AssetGenImage get prescription =>
       const AssetGenImage('assets/images/prescription.png');
 
+  /// File path: assets/images/whatsapp.png
+  AssetGenImage get whatsapp =>
+      const AssetGenImage('assets/images/whatsapp.png');
+
   /// List of all assets
-  List<AssetGenImage> get values => [logo, prescription];
+  List<AssetGenImage> get values => [logo, prescription, whatsapp];
 }
 
 class Assets {

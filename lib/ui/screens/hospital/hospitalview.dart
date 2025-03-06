@@ -1,16 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:medhub/models/getalldoctors/Data.dart';
+import 'package:medhub/models/hospitalall/Data.dart';
 import 'package:stacked/stacked.dart';
 
 import 'hospitalviewmodel.dart';
 
 class HospitalDetailView extends StatelessWidget {
-  const HospitalDetailView({Key? key}) : super(key: key);
+  Hospital hospital;
+   HospitalDetailView({required this.hospital}) ;
 
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<HospitalDetailViewModel>.reactive(
-      viewModelBuilder: () => HospitalDetailViewModel(),
+      viewModelBuilder: () => HospitalDetailViewModel(hospital:hospital ),
       onViewModelReady: (model) => model.initialize(),
       builder: (context, model, child) {
         if (model.isLoading) {
@@ -49,28 +52,21 @@ class HospitalDetailView extends StatelessWidget {
       pinned: true,
       flexibleSpace: FlexibleSpaceBar(
         background: Image.network(
-          model.hospital!.imageUrl,
-          fit: BoxFit.cover,
+          "${model.baseUrl}${model.hospital!.image}",
+          fit: BoxFit.fill,
         ),
       ),
-      title: Text(
-        model.hospital!.name,
-        style: const TextStyle(
-            fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
-      ),
-      leading: IconButton(
+      leading:    IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () => Navigator.pop(context),
-      ),
-      actions: [
-        IconButton(
-          icon: Icon(
-            model.hospital!.isFavorite ? Icons.favorite : Icons.favorite_border,
-            color: Colors.red,
+        style: IconButton.styleFrom(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-          onPressed: () {/* Toggle favorite */},
         ),
-      ],
+      ),
+
     );
   }
 
@@ -81,7 +77,7 @@ class HospitalDetailView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            model.hospital!.name,
+            "${model.hospital!.name}",
             style: const TextStyle(
                 fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
           ),
@@ -91,7 +87,7 @@ class HospitalDetailView extends StatelessWidget {
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
-                  model.hospital!.address,
+                 "${model.hospital!.location}",
                   style: const TextStyle(color: Colors.grey),
                 ),
               ),
@@ -109,10 +105,7 @@ class HospitalDetailView extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Text(
-                ' (${model.hospital!.reviews} reviews)',
-                style: const TextStyle(color: Colors.grey),
-              ),
+
             ],
           ),
         ],
@@ -134,19 +127,22 @@ class HospitalDetailView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: model.hospital!.facilities.map((facility) {
-              return Chip(
-                label: Text(facility),
-                backgroundColor: Colors.blue.withOpacity(0.1),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              );
-            }).toList(),
-          ),
+          if (model.hospital?.facilities != null && model.hospital!.facilities!.isNotEmpty)
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: model.hospital!.facilities!.map((facility) {
+                return Chip(
+                  label: Text(facility.facility ?? 'No facility name'),
+                  backgroundColor: Colors.blue.withOpacity(0.1),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                );
+              }).toList(),
+            )
+          else
+            const Text('No facilities available'),
         ],
       ),
     );
@@ -167,7 +163,7 @@ class HospitalDetailView extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            model.hospital!.about,
+            "${model.hospital!.about}",
             style: const TextStyle(
               color: Colors.grey,
               height: 1.5,
@@ -195,16 +191,18 @@ class HospitalDetailView extends StatelessWidget {
     return SliverPadding(
       padding: const EdgeInsets.all(16),
       sliver: SliverList(
+
         delegate: SliverChildBuilderDelegate(
+
           (context, index) {
-            final doctor = model.doctors[index];
+            final doctor = model.hospital!.doctors![index];
             return Container(
               decoration: BoxDecoration(
                   border: Border.all(width: .2),
                   borderRadius: BorderRadius.circular(10)),
               margin: const EdgeInsets.only(bottom: 16),
               child: InkWell(
-                onTap: () => model.navigateToDoctorDetail(doctor.id),
+                onTap: () => model.navigateToDoctorDetail(doctor!),
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Row(
@@ -216,7 +214,7 @@ class HospitalDetailView extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10),
                             image: DecorationImage(
                                 image:
-                                    NetworkImage(model.doctors[index].imageUrl),
+                                    NetworkImage('${model.baseUrl}${doctor.image}'),
                                 fit: BoxFit.cover)),
                       ),
                       const SizedBox(width: 12),
@@ -225,7 +223,7 @@ class HospitalDetailView extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              doctor.name,
+                              "${doctor.name}",
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -233,7 +231,7 @@ class HospitalDetailView extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              doctor.specialization,
+                              "${doctor.department}",
                               style: const TextStyle(color: Colors.grey),
                             ),
                             const SizedBox(height: 4),
@@ -243,7 +241,7 @@ class HospitalDetailView extends StatelessWidget {
                                     color: Colors.amber, size: 16),
                                 const SizedBox(width: 4),
                                 Text(
-                                  '${doctor.rating} (${doctor.reviews} reviews)',
+                                  '${doctor.rating}',
                                   style: const TextStyle(color: Colors.grey),
                                 ),
                               ],
@@ -263,9 +261,7 @@ class HospitalDetailView extends StatelessWidget {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: doctor.isAvailable
-                                  ? Colors.blue
-                                  : Colors.grey,
+                              color: Colors.blue,
                               borderRadius: BorderRadius.circular(5),
                             ),
                             child: Text(
@@ -284,7 +280,7 @@ class HospitalDetailView extends StatelessWidget {
               ),
             );
           },
-          childCount: model.doctors.length,
+          childCount: model.hospital!.doctors!.length,
         ),
       ),
     );

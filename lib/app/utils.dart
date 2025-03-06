@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:medhub/services/api_service.dart';
+import 'package:medhub/services/user_service.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 import 'app.locator.dart';
@@ -15,10 +17,11 @@ String getDeviceType() {
   }
   return deviceType;
 }
-
+ApiService get apiService => locator<ApiService>();
 NavigationService get navigationService => locator<NavigationService>();
 DialogService get dialogService => locator<DialogService>();
 BottomSheetService get sheetService => locator<BottomSheetService>();
+UserService get userService => locator<UserService>();
 
 void dismissKeyboard(BuildContext context) {
   FocusScopeNode currentFocus = FocusScope.of(context);

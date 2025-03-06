@@ -1,45 +1,97 @@
-// import 'dart:convert';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
-// import 'package:shared_preferences/shared_preferences.dart';
-
-// import '../constants/app_constants.dart';
+import '../models/User.dart';
+ // assuming you have the User class in a separate file
 
 class UserService {
-  // AppUser? tempUser;
-  // AppUser? user;
+  // Keys for SharedPreferences
+  static const String _userKey = 'user_data';
+  static const String _isLoggedInKey = 'is_logged_in';
+  static const String _accessTokenKey = 'access_token';
+  static const String _refreshTokenKey = 'refresh_token';
 
-  // void setTempUser(Map<String, dynamic>? data) {
-  //   if (data != null) {
-  //     tempUser = AppUser.fromJson(data);
-  //   }
-  // }
+  // Save user data to SharedPreferences
+   Future<bool> saveUser(User user) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String userJson = userToJson(user);
 
-  // Future<void> saveLoginCredential(Map<String, dynamic>? data) async {
-  //   if (data == null) return;
+    // Store individual tokens for easier access
+    await prefs.setString(_accessTokenKey, user.access ?? '');
+    await prefs.setString(_refreshTokenKey, user.refresh ?? '');
+    await prefs.setBool(_isLoggedInKey, true);
 
-  //   user = AppUser.fromJson(data);
-  //   final prefs = await SharedPreferences.getInstance();
-  //   prefs.setString(Prefs.user, jsonEncode(user!.toJson()));
-  // }
+    return await prefs.setString(_userKey, userJson);
+  }
 
-  // Future<AppUser?> loadCredential() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   String? value = prefs.getString(Prefs.user);
-  //   if (value != null) {
-  //     user = AppUser.fromJson(jsonDecode(value));
-  //   } else {
-  //     user = null;
-  //   }
-  //   return user;
-  // }
+  // Get user data from SharedPreferences
+   Future<User?> getUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userJson = prefs.getString(_userKey);
 
-  // Future<void> logout() async {
-  //   tempUser = user = null;
-  //   final prefs = await SharedPreferences.getInstance();
-  //   prefs.clear();
-  //   navigationService.pushNamedAndRemoveUntil(
-  //     Routes.loginView,
-  //     predicate: (route) => false,
-  //   );
-  // }
+    if (userJson == null || userJson.isEmpty) {
+      return null;
+    }
+
+    return userFromJson(userJson);
+  }
+
+  // Check if user is logged in
+   Future<bool> isLoggedIn() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_isLoggedInKey) ?? false;
+  }
+
+  // Get access token
+   Future<String?> getAccessToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_accessTokenKey);
+  }
+
+  // Get refresh token
+   Future<String?> getRefreshToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_refreshTokenKey);
+  }
+
+  // Update tokens
+   Future<bool> updateTokens(String accessToken, String refreshToken) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    User? user = await getUser();
+
+    if (user != null) {
+      user.access = accessToken;
+      user.refresh = refreshToken;
+      await prefs.setString(_userKey, userToJson(user));
+    }
+
+    await prefs.setString(_accessTokenKey, accessToken);
+    return await prefs.setString(_refreshTokenKey, refreshToken);
+  }
+
+  // Update user profile
+   Future<bool> updateUserProfile(User updatedUser) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    User? currentUser = await getUser();
+
+    if (currentUser != null) {
+      // Preserve authentication tokens
+      updatedUser.access = currentUser.access;
+      updatedUser.refresh = currentUser.refresh;
+
+      return await prefs.setString(_userKey, userToJson(updatedUser));
+    }
+
+    return false;
+  }
+
+  // Clear user data (logout)
+   Future<bool> logout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_accessTokenKey);
+    await prefs.remove(_refreshTokenKey);
+    await prefs.setBool(_isLoggedInKey, false);
+    return await prefs.remove(_userKey);
+
+  }
 }

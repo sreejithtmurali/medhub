@@ -1,206 +1,209 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
+import 'login_viewmodel.dart';
 import '../../../constants/assets.gen.dart';
 import '../../tools/screen_size.dart';
-import 'login_viewmodel.dart';
 
 class LoginView extends StatelessWidget {
-  const LoginView({Key? key}) : super(key: key);
+  const LoginView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<LoginViewModel>.reactive(
-
-      builder: (context, model, child) {
+      builder: (context, viewModel, child) {
         return Scaffold(
-          backgroundColor: Colors.white,
+
           body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Form(
-                key: model.formkey,
+
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: SingleChildScrollView(
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Top Bar
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: const Icon(Icons.arrow_back),
-                        ),
-                        const Text(
-                          'Sign Up',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const Icon(Icons.help_outline),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
 
-                    // Profile Section
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+
+                          CircleAvatar(
+                            backgroundColor: Colors.blue,
+                            backgroundImage: AssetImage("assets/images/logo.png"),
+                          ),
+                          SizedBox()
+                        ],
+                      ),
+                    ),
+                
+                     SizedBox(height: MediaQuery.of(context).size.height/8),
+                
+                    // Login Title
                     const Text(
-                      'Complete your Profile',
+                      'Login',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                
                     const SizedBox(height: 8),
-                    Text(
-                      'Access to our features and secure healthcare',
+                
+                    // Subtitle
+                    const Text(
+                      'Keep your Medical Records with MedHub\nStay Healthy Stay Safe',
                       style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
+                        fontSize: 14,
+                        color: Colors.grey,
                       ),
                     ),
-                    const SizedBox(height: 24),
-
-                    // Profile Picture
-                    Center(
-                      child: Stack(
+                
+                    const SizedBox(height: 32),
+                
+                    // Form
+                    Form(
+                      key: viewModel.formkey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          CircleAvatar(
-                            radius: 50,
-                            backgroundColor: Colors.grey[200],
-                            child: const Icon(
-                              Icons.person,
-                              size: 50,
+                          // Email Label
+                          const Text(
+                            'Email',
+                            style: TextStyle(
+                              fontSize: 14,
                               color: Colors.grey,
                             ),
                           ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Colors.blue,
-                                shape: BoxShape.circle,
+                
+                          const SizedBox(height: 8),
+                
+                          // Email Field
+                          TextFormField(
+                            validator: (value) => viewModel.validateEmail(value),
+                            controller: viewModel.namecontroller,
+
+
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(),
+                              hintText: "enter your email",
+                              prefixIcon: const Icon(Icons.email_outlined, color: Colors.grey),
+                
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                
+                          const SizedBox(height: 16),
+                
+                          // Password Label
+                          const Text(
+                            'Password',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                          ),
+                
+                          const SizedBox(height: 8),
+                
+                          // Password Field
+                          TextFormField(
+                            validator: (value) {
+                              return value!.length >= 6 ? null : "Enter valid password";
+                            },
+                            controller: viewModel.password,
+                            obscureText: viewModel.isviewable,
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(),
+                              hintText: "password",
+                              prefixIcon: const Icon(Icons.lock_outlined, color: Colors.grey),
+                              suffixIcon: IconButton(
+                                icon:  Icon(!viewModel.isviewable?Icons.visibility_off:Icons.remove_red_eye, color: Colors.grey),
+                                onPressed: () {
+                                  viewModel.togglepass();
+                                },
                               ),
-                              child: const Icon(
-                                Icons.edit,
-                                size: 20,
-                                color: Colors.white,
+                
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                
+                          const SizedBox(height: 40),
+                
+                          // Sign In Button
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(32),
+                                ),
+                              ),
+                              onPressed: () {
+                                viewModel.login();
+                              },
+                              child: const Text(
+                                'Sign in',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
                           ),
+                
+                          const SizedBox(height: 16),
+                
+                          // Forgot Password
+                          // Center(
+                          //   child: TextButton(
+                          //     onPressed: () {
+                          //       // Handle forgot password
+                          //     },
+                          //     child: const Text(
+                          //       'Forgot password?',
+                          //       style: TextStyle(
+                          //         color: Colors.blue,
+                          //         fontWeight: FontWeight.w400,
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 32),
-
-                    // Form Fields
-                    _buildTextField('Full Name', Icons.person_outline,model.uname),
-                    const SizedBox(height: 16),
-
-                    _buildTextField('Email', Icons.email_outlined,model.email),
-                    const SizedBox(height: 16),
-
-                    // Password Field
-                    TextField(
-                      obscureText:model.isPasswordVisible,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            model.isPasswordVisible
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            model.isPasswordVisible=!model.isPasswordVisible;
-                            model.notifyListeners();
-                          },
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Forgot Password
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {},
-                        child: const Text('Forgot Password?'),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Date and Gender Row
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            validator: (v){
-                              return v!.length==0?"Must enter DOB":null;
-                            },
-                            controller: model.dateController,
-                            readOnly: true,
-                            onTap: () => _selectDate(context,model),
-                            decoration: InputDecoration(
-                              labelText: 'Date of Birth',
-                              prefixIcon: const Icon(Icons.calendar_today),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                
+                    // const Spacer(),
+                
+                    // Sign Up Link
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 24.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              "Don't have an account? ",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                viewModel.navRegister();
+                              },
+                              child: const Text(
+                                'Sign up here',
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            value: model.selectedGender,
-                            decoration: InputDecoration(
-                              labelText: 'Gender',
-                              prefixIcon: const Icon(Icons.person_outline),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            items: ['Male', 'Female', 'Other']
-                                .map((gender) => DropdownMenuItem(
-                              value: gender,
-                              child: Text(gender),
-                            ))
-                                .toList(),
-                            onChanged: (value) {
-                              model.selectedGender=value;
-                              model.notifyListeners();
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Sign Up Button
-                    ElevatedButton(
-                      onPressed: () {
-                        model.login();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        minimumSize: const Size(double.infinity, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Sign Up',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                          ],
                         ),
                       ),
                     ),
@@ -214,34 +217,6 @@ class LoginView extends StatelessWidget {
       viewModelBuilder: () => LoginViewModel(),
     );
   }
-  Widget _buildTextField(String label, IconData icon, TextEditingController ctlr) {
-    return TextFormField(
-      controller: ctlr,
-      validator: (v){
-        return v!.length==0?"Must fill $label":null;
-      },
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _selectDate(BuildContext context, LoginViewModel model) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null) {
-
-        model.dateController.text = "${picked.day}/${picked.month}/${picked.year}";
-        model.notifyListeners();
-
-    }
-  }
 }
+
+

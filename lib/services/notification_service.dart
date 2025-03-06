@@ -1,102 +1,118 @@
-import 'dart:convert';
-
-import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz_init;
+import '../models/reminder.dart';
 
 class NotificationService {
-  // FirebaseMessaging messaging = FirebaseMessaging.instance;
-  // final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-  //     FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
 
-  Future<void> registerPushNotificationHandler() async {
-    // NotificationSettings settings = await messaging.requestPermission(
-    //   alert: true,
-    //   announcement: false,
-    //   badge: true,
-    //   carPlay: false,
-    //   criticalAlert: false,
-    //   provisional: false,
-    //   sound: true,
-    // );
+  Future<void> init() async {
+    tz_init.initializeTimeZones();
 
-    // if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-    //   debugPrint('User granted permission');
-    // } else if (settings.authorizationStatus ==
-    //     AuthorizationStatus.provisional) {
-    //   debugPrint('User granted provisional permission');
-    // } else {
-    //   debugPrint('User declined or has not accepted permission');
-    // }
+    const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
 
-    // await messaging.setForegroundNotificationPresentationOptions(
-    //   alert: true,
-    //   badge: true,
-    //   sound: true,
-    // );
-    // const AndroidNotificationChannel channel = AndroidNotificationChannel(
-    //   'high_importance_channel',
-    //   'High Importance Notifications',
-    //   description: 'This channel is used for important notifications.',
-    //   importance: Importance.max,
-    // );
+    const InitializationSettings initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
 
-    // var initializationSettingsAndroid = const AndroidInitializationSettings(
-    //   '@drawable/ic_stat_logo',
-    // );
-    // var initializationSettingsIOS = const IOSInitializationSettings();
-    // var initializationSettings = InitializationSettings(
-    //   android: initializationSettingsAndroid,
-    //   iOS: initializationSettingsIOS,
-    // );
-    // flutterLocalNotificationsPlugin.initialize(
-    //   initializationSettings,
-    //   onSelectNotification: onSelectNotification,
-    // );
-
-    // FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-    //   debugPrint(
-    //       "\nForground message notification: ${message.notification?.title} "
-    //       "${message.notification?.body}");
-    //   debugPrint("Forground message data: ${message.data.toString()}");
-
-    //   RemoteNotification? notification = message.notification;
-
-    //   if (notification != null) {
-    //     flutterLocalNotificationsPlugin.show(
-    //       notification.hashCode,
-    //       notification.title,
-    //       notification.body,
-    //       NotificationDetails(
-    //         android: AndroidNotificationDetails(
-    //           channel.id,
-    //           channel.name,
-    //           channelDescription: channel.description,
-    //           color: const Color(0xFFEE7110),
-    //         ),
-    //       ),
-    //       payload: jsonEncode(message.data),
-    //     );
-    //   }
-    // });
-
-    // FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    //   debugPrint("Message Clicked: ${message.data.toString()}");
-    // });
-    debugPrint("Notification Service Registered");
+    await _notificationsPlugin.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        // Handle notification tap
+      },
+    );
   }
 
-  void onSelectNotification(String? data) {
-    debugPrint("Local Message Clicked: $data");
-    if (data?.isNotEmpty ?? false) {
-      Map<String, dynamic> payload = jsonDecode(data!);
-      debugPrint("Local Message Clicked: $payload");
+  NotificationDetails _getNotificationDetails(ReminderPriority priority) {
+    AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'reminder_channel',
+      'Reminders',
+      channelDescription: 'Reminder notifications',
+      importance: Importance.max,
+      priority: Priority.high,
+      enableVibration: true,
+      playSound: true,
+      sound: const RawResourceAndroidNotificationSound('notification_sound'),
+    );
+
+    DarwinNotificationDetails iosDetails = const DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+      sound: 'notification_sound.aiff',
+    );
+
+    return NotificationDetails(android: androidDetails, iOS: iosDetails);
+  }
+
+  Future<void> scheduleReminder(Reminder reminder) async {
+    final notificationDetails = _getNotificationDetails(reminder.priority);
+
+    if (reminder.isPeriodic && reminder.toDate != null) {
+      // For periodic notifications, we would set up recurring notifications
+      // This is a simple implementation - in production, you'd handle more complex cases
+      await _notificationsPlugin.zonedSchedule(
+        reminder.id.hashCode,
+        'Reminder',
+        reminder.message,
+        _getNextInstanceTime(reminder),
+        notificationDetails,
+
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.time, androidScheduleMode: AndroidScheduleMode.exact,
+      );
+    } else {
+      // One-time notification
+      await _notificationsPlugin.zonedSchedule(
+        reminder.id.hashCode,
+        'Reminder',
+        reminder.message,
+        tz.TZDateTime.from(
+          DateTime(
+            reminder.fromDate.year,
+            reminder.fromDate.month,
+            reminder.fromDate.day,
+            reminder.time.hour,
+            reminder.time.minute,
+          ),
+          tz.local,
+        ),
+        notificationDetails,
+
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, androidScheduleMode: AndroidScheduleMode.exact,
+      );
     }
   }
 
-  Future<String> getDeviceToken() async {
-    // String token = await messaging.getToken() ?? "";
-    String token =
-        "test-iYY0QzSyzqh1LPasWG:APA91bFOtBMPu0IeHEdMCClfYkx1drZ73aGKr7-RHb0BaFv2N2DcZ0HHhqkoQ5RSyx2JRC6YdFPsnVicSnvcuCrieBTHqO_UuVz9BGqIo7I5DSWiIao--Q5EIG4IeERMZLwkqwxWiD8Y";
-    debugPrint('FirebaseToken: $token');
-    return token;
+  tz.TZDateTime _getNextInstanceTime(Reminder reminder) {
+    final now = tz.TZDateTime.now(tz.local);
+    final scheduledDate = tz.TZDateTime(
+      tz.local,
+      reminder.fromDate.year,
+      reminder.fromDate.month,
+      reminder.fromDate.day,
+      reminder.time.hour,
+      reminder.time.minute,
+    );
+
+    if (scheduledDate.isBefore(now)) {
+      // If the scheduled time is in the past, set it for the next day
+      return scheduledDate.add(const Duration(days: 1));
+    }
+    return scheduledDate;
+  }
+
+  Future<void> cancelReminder(int id) async {
+    await _notificationsPlugin.cancel(id);
+  }
+
+  Future<void> cancelAllReminders() async {
+    await _notificationsPlugin.cancelAll();
   }
 }

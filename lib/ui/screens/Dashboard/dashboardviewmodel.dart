@@ -6,10 +6,12 @@ import 'package:stacked/stacked.dart';
 import '../../../app/app.router.dart';
 import '../../../app/utils.dart';
 import '../Profile/Profile_view.dart';
+import '../my_notifications_view/my_noti_view.dart';
+import '../profileupdate/profileupdate_view.dart';
 
 class DashboardviewModel extends BaseViewModel {
   var current=0;
-  var pages=[HomeView(),HomeView(),ProfileView(),SOSView()];
+  var pages=[HomeView(),NotifictionsView(),ProfileView(),SOSView()];
 
   navigatelogin() {
     Timer(Duration(seconds: 4),()=>{

@@ -15,34 +15,57 @@ class MyPrescriptions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<MyPrescriptionsModel>.reactive(
-      // onViewModelReady: (model) => model.navigatelogin(),
+       onViewModelReady: (model) => model.init(),
       builder: (context, model, child) {
         return Scaffold(
           appBar: AppBar(
+            leading: IconButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: const Icon(Icons.arrow_back, color: Colors.white)
+            ),
             backgroundColor: Colors.blue,
-            title: Text("Add Prescriptions",style: TextStyle(color: Colors.white),),),
+            title: Text("Add Prescriptions",style: TextStyle(color: Colors.white),),
+          actions: [
+            IconButton(onPressed: (){
+              model.init();
+            }, icon: Icon(Icons.refresh,color: Colors.white,))
+          ],),
           body: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: GridView.builder(itemCount: 10, itemBuilder: (BuildContext context, int index) {
+            child: GridView.builder(itemCount: model.mylist!.length, itemBuilder: (BuildContext context, int index) {
               return Container(
                 height: 200,
                 decoration: BoxDecoration(
-                  border: Border.all(width: .2)
+                  border: Border.all(width: .2),
+                  borderRadius: BorderRadius.circular(10)
                 ),
-                child: Column(children: [
-                  Image.asset("assets/images/prescription.png",width: double.maxFinite,height: 150,fit: BoxFit.cover,),
-                  Text(
-                    'Dr.Shihab',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+
+                  children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.only(topLeft: Radius.circular(10),topRight: Radius.circular(10)),
+                      child: Image.network("${model.baseUrl}${model.mylist![index].image}",width: double.maxFinite,height: 150,fit: BoxFit.cover,)),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: Text(
+                      '${model.mylist![index].doctor}',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                  Text(
-                    'Date : 24/01/2025',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: Text(
+                      '${model.mylist![index].date}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],),

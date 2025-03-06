@@ -4,54 +4,60 @@ import 'package:stacked/stacked.dart';
 
 import '../../../app/app.router.dart';
 import '../../../app/utils.dart';
+import '../../../models/getalldoctors/Data.dart';
+import '../../../models/hospitalall/Data.dart';
+import '../../../services/api_service.dart';
 
 class DoctorsListModel extends BaseViewModel {
   navigatelogin() {
-    Timer(Duration(seconds: 4),()=>{
+    Timer(Duration(seconds: 4), () => {
       navigationService.navigateTo(Routes.loginView)
     });
   }
-  final List<Map<String, dynamic>> doctors = [
-    {
-      'name': 'Dr. Jacob Jones',
-      'rating': '4.8',
-      'time': '10:00 AM-4:00 PM',
-      'imageUrl': 'assets/doctor1.jpg',
-    },
-    {
-      'name': 'Dr. Sabir Khan',
-      'rating': '4.7',
-      'time': '9:00 AM-3:00 PM',
-      'imageUrl': 'assets/doctor2.jpg',
-    },
-    {
-      'name': 'Dr. Kamala Ragimova',
-      'rating': '4.9',
-      'time': '10:30 AM-2:00 PM',
-      'imageUrl': 'assets/doctor3.jpg',
-    },
-    {
-      'name': 'Dr. Zorifa Shikhali',
-      'rating': '4.8',
-      'time': '11:00 AM-4:00 PM',
-      'imageUrl': 'assets/doctor4.jpg',
-    },
-    {
-      'name': 'Dr. Jenny Griffin Jones',
-      'rating': '4.9',
-      'time': '11:00 AM-4:30 PM',
-      'imageUrl': 'assets/doctor5.jpg',
-    },
-    {
-      'name': 'Dr. Jenny Griffin Jones',
-      'rating': '4.7',
-      'time': '10:00 AM-4:30 PM',
-      'imageUrl': 'assets/doctor6.jpg',
-    },
-  ];
 
-  void navdoctor() {
-    navigationService.navigateTo(Routes.doctorView);
+  static const environment = ApiEnvironment.dev;
+
+  String baseUrl = environment.baseUrl;
+  List<Doctor>? _originalDoctorsList = [];
+  List<Doctor>? filteredDoctorsList = [];
+
+  init() async {
+    await getalldoctors();
+    await getallhospitals();
+    notifyListeners();
   }
 
+  Future<void> getalldoctors() async {
+    _originalDoctorsList = await apiService.getallDoctors();
+    filteredDoctorsList = _originalDoctorsList;
+    notifyListeners();
+  }
+
+  Future<void> getallhospitals() async {
+    hospitallist = await apiService.getallHospitals();
+    notifyListeners();
+  }
+
+  List<Hospital>? hospitallist = [];
+
+  void navdoctor(Doctor d) {
+    navigationService.navigateTo(
+      Routes.doctorView,
+      arguments: DoctorViewArguments(doctor: d),
+    );
+  }
+
+  void searchDoctors(String query) {
+    if (query.isEmpty) {
+      filteredDoctorsList = _originalDoctorsList;
+    } else {
+      filteredDoctorsList = _originalDoctorsList?.where((doctor) {
+        // Search across multiple fields: name, department, hospital name
+        return doctor.name!.toLowerCase().contains(query.toLowerCase())  ||
+            doctor.department!.toLowerCase().contains(query.toLowerCase())  ||
+            doctor.hospitalName!.toLowerCase().contains(query.toLowerCase()) ;
+      }).toList();
+    }
+    notifyListeners();
+  }
 }

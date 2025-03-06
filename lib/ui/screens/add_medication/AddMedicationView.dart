@@ -5,7 +5,6 @@ import 'package:stacked_services/stacked_services.dart';
 import '../../../app/app.locator.dart';
 import '../../../services/medicationservice.dart';
 import 'add_medication_view_model.dart';
-
 class AddMedicationView extends StatelessWidget {
   const AddMedicationView({Key? key}) : super(key: key);
 
@@ -18,8 +17,12 @@ class AddMedicationView extends StatelessWidget {
       ),
       builder: (context, viewModel, child) => Scaffold(
         appBar: AppBar(
+
+            leading: IconButton(onPressed: (){
+              Navigator.pop(context);
+            }, icon: Icon(Icons.arrow_back,color: Colors.white,)),
           backgroundColor: Colors.blue,
-          title: const Text('Add Medication'),
+          title: const Text('Add Medication',style: TextStyle(color: Colors.white)),
         ),
         body: Stack(
           children: [
