@@ -14,6 +14,7 @@ import '../services/medicationservice.dart';
 import '../ui/screens/DoctorView/Doctor_view.dart';
 import '../ui/screens/MyPrescription/myprescriptions.dart';
 import '../ui/screens/MyPrescriptionAdd/addmyprescriptions.dart';
+import '../ui/screens/My_medication/myMedicationView.dart';
 import '../ui/screens/doctorslisting/doctorslist_view.dart';
 import '../ui/screens/home/home_view.dart';
 import '../ui/screens/hospital/hospitalview.dart';
@@ -33,7 +34,8 @@ import '../ui/screens/splash/splash_view.dart';
     MaterialRoute(page: HospitalDetailView),
     MaterialRoute(page: MyPrescriptions),
     MaterialRoute(page: AddMyPrescriptions),
-    MaterialRoute(page: AddMedicationView)
+    MaterialRoute(page: AddMedicationView),
+    MaterialRoute(page: ViewAllMedications)
   ],
   dependencies: [
     LazySingleton(classType: ApiService),

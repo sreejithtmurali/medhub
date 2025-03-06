@@ -29,7 +29,7 @@ class ProfileViewModel extends BaseViewModel {
   }
 
   void nevmedications() {
-    navigationService.navigateTo(Routes.addMedicationView);
+    navigationService.navigateTo(Routes.viewAllMedications);
   }
 
 }
