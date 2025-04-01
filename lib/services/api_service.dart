@@ -8,6 +8,8 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:http/retry.dart';
 import 'package:http/http.dart' as http;
 import 'package:medhub/app/utils.dart';
+import 'package:medhub/models/addreminder/AddReminder.dart';
+import 'package:medhub/models/addreminder/Data.dart';
 import 'package:medhub/models/allbookings/BookingMain.dart';
 import 'package:medhub/models/allbookings/GetAllBookings.dart';
 import 'package:medhub/models/allmedication/AllMedication.dart';
@@ -589,11 +591,13 @@ class ApiService {
   }
 
 //--------------------
-  Future<bool> addReminder({required String message,
+  Future<Reminder?> addReminder({required String message,
     required bool repeat, required Map time,
     required String from_date, String? to_date}) async {
     Uri url = Uri.parse("$baseUrl/reminder/");
-
+    if (to_date == null) {
+      to_date=from_date;
+    }
     var body = jsonEncode({
       "message": message,
       "time": time,
@@ -601,6 +605,7 @@ class ApiService {
       "from_date": "${from_date}",
       "to_date": "${to_date}"
     });
+
     var headers = {
       "accept": "application/json",
       "Content-Type": "application/json",
@@ -612,16 +617,20 @@ class ApiService {
       print("Response: ${response.body}");
 
       if (response.statusCode >= 200 && response.statusCode <= 299) {
-        return true;
+        var json=jsonDecode(response.body);
+        var res=AddReminder.fromJson(json);
+        var rem=res.data;
+
+        return rem;
       }
       else {
         print("Error adding reminder : ${response.statusCode} - ${response
             .body}");
-        return false;
+
       }
     } catch (e) {
       print("Exception adding reminder : $e");
-      return false;
+
     }
   }
 
@@ -892,7 +901,7 @@ print(response.body);
 }
 
 enum ApiEnvironment {
-  dev("http://192.168.1.24:8000"),
+  dev("http://10.10.50.107:8000"),
   prod("http://192.168.1.40:8000");
   // Generate a secure key and IV (Initialization Vector)
 

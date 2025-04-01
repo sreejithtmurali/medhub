@@ -1,175 +1,158 @@
-import 'dart:nativewrappers/_internal/vm/lib/typed_data_patch.dart';
-
+import 'package:flutter/material.dart';
+import 'dart:typed_data';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
-import 'package:vibration/vibration.dart';
-import 'package:flutter/material.dart';
-import 'package:medhub/models/allriminders/Data.dart';
-import 'package:medhub/app/utils.dart';
+
+import '../app/utils.dart';
+import '../app/app.locator.dart';
+import '../models/addreminder/Data.dart';
 
 class ReminderService {
-  final FlutterLocalNotificationsPlugin _notificationsPlugin =
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
   FlutterLocalNotificationsPlugin();
 
-  Future<void> initialize() async {
-    // Initialize timezone database
+  // For vibration pattern
+  final Int64List vibrationPattern = Int64List.fromList([0, 500, 200, 500, 200, 500]);
+
+  // Initialize notification settings
+  Future<void> init() async {
     tz.initializeTimeZones();
 
-    // Initialize notification plugin
     const AndroidInitializationSettings initializationSettingsAndroid =
     AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    final InitializationSettings initializationSettings =
-    InitializationSettings(
+    final DarwinInitializationSettings initializationSettingsIOS =
+    DarwinInitializationSettings(
+      requestSoundPermission: true,
+      requestBadgePermission: true,
+      requestAlertPermission: true,
+
+    );
+
+    final InitializationSettings initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
-      // Add iOS settings if needed
+      iOS: initializationSettingsIOS,
     );
 
-    await _notificationsPlugin.initialize(
+    await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
-      onDidReceiveNotificationResponse: (NotificationResponse response) async {
-        // Handle notification tap if needed
-      },
+      onDidReceiveNotificationResponse: onDidReceiveNotificationResponse,
     );
   }
 
-  Future<List<Riminder>?> getallrimiders() async {
-    // Implement your API call to get all reminders
-    // This is just a placeholder - replace with your actual implementation
-    try {
-      final response = await apiService.getallrimiders();
-      return response;
-      return [];
-    } catch (e) {
-      debugPrint('Error fetching reminders: $e');
-      return [];
-    }
+  // iOS notification callback
+  Future onDidReceiveLocalNotification(
+      int id, String? title, String? body, String? payload) async {
+    // Handle iOS foreground notification
+    print('Received iOS notification: $title, $body');
   }
 
-  Future<bool?> deleteReminder({required num id}) async {
-    // Implement your API call to delete a reminder
-    // This is just a placeholder - replace with your actual implementation
-    try {
-      final response = await apiService.deleteReminder(id: id);
-     return response;
-    } catch (e) {
-      debugPrint('Error deleting reminder: $e');
-      return false;
-    }
+  // Handle notification tap
+  void onDidReceiveNotificationResponse(NotificationResponse notificationResponse) {
+    // Handle notification tap
+    print('Notification tapped: ${notificationResponse.payload}');
+    // Navigate to specific screen or perform action based on payload
+    // navigationService.navigateTo(...);
   }
 
-  Future<void> scheduleReminder({
-    required Riminder reminder,
-    required String message,
-    required DateTime scheduledTime,
-    bool repeat = false,
-    String? repeatFrequency,
-  }) async {
+  // Schedule a reminder notification
+  Future<void> scheduleReminder(Reminder reminder) async {
+    // Parse time from string - assuming format is "HH:mm"
+    final timeParts = reminder.time!.split(':');
+    final hour = int.parse(timeParts[0]);
+    final minute = int.parse(timeParts[1]);
 
-    try {
-      // Schedule notification
-      await _scheduleNotification(
-        id: reminder.id?.toInt() ?? 0,
-        title: 'Reminder',
-        body: message,
-        scheduledTime: scheduledTime,
-        repeat: repeat,
-        repeatFrequency: repeatFrequency,
-      );
-
-      // Vibrate when reminder triggers
-      await _triggerVibration();
-
-      // Save reminder to your backend
-
-    } catch (e) {
-      debugPrint('Error scheduling reminder: $e');
-      throw Exception('Failed to schedule reminder');
+    // Parse dates
+    final fromDate = DateTime.parse(reminder.fromDate!);
+    DateTime? toDate;
+    if (reminder.toDate != null && reminder.toDate!.isNotEmpty) {
+      toDate = DateTime.parse(reminder.toDate!);
     }
-  }
 
-  Future<void> _scheduleNotification({
-    required int id,
-    required String title,
-    required String body,
-    required DateTime scheduledTime,
-    bool repeat = false,
-    String? repeatFrequency,
-  }) async {
-    final Int64List? vibrationPattern = Int64List.fromList([0, 500, 1000, 500]);
+    // Create reminder date with time
+    final scheduledDate = DateTime(
+      fromDate.year,
+      fromDate.month,
+      fromDate.day,
+      hour,
+      minute,
+    );
 
+    // Don't schedule if date is in the past
+    if (scheduledDate.isBefore(DateTime.now())) {
+      print('Reminder date is in the past, not scheduling');
+      return;
+    }
+
+    // Configure notification details
     final androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'reminder_channel',
       'Reminders',
       channelDescription: 'Channel for reminder notifications',
       importance: Importance.max,
       priority: Priority.high,
-      sound:  RawResourceAndroidNotificationSound('notification_sound'),
+      sound: const RawResourceAndroidNotificationSound('notification_sound'),
       enableVibration: true,
-     // vibrationPattern: vibrationPattern,
+      vibrationPattern: vibrationPattern,
+    );
+
+    final iOSPlatformChannelSpecifics = const DarwinNotificationDetails(
+      presentSound: true,
+      presentBadge: true,
+      presentAlert: true,
     );
 
     final platformChannelSpecifics = NotificationDetails(
       android: androidPlatformChannelSpecifics,
-      // Add iOS settings if needed
+      iOS: iOSPlatformChannelSpecifics,
     );
 
-    if (repeat && repeatFrequency != null) {
-      // Handle repeating notifications with exact scheduling
-      await _notificationsPlugin.periodicallyShow(
-        id,
-        title,
-        body,
-        _getRepeatInterval(repeatFrequency),
-        platformChannelSpecifics,
-        androidScheduleMode: AndroidScheduleMode.exact,
-      );
-    } else {
-      // Schedule single notification with exact timing
-      await _notificationsPlugin.zonedSchedule(
-        id,
-        title,
-        body,
-        tz.TZDateTime.from(scheduledTime, tz.local),
-        platformChannelSpecifics,
-        // androidAllowWhileIdle: true,
-        uiLocalNotificationDateInterpretation:
-        UILocalNotificationDateInterpretation.absoluteTime,
-        androidScheduleMode: AndroidScheduleMode.exact,
-      );
-    }
+    // Schedule the notification
+    await flutterLocalNotificationsPlugin.zonedSchedule(
+      reminder.id!.toInt(),
+      'Reminder',
+      reminder.message,
+      tz.TZDateTime.from(scheduledDate, tz.local),
+      platformChannelSpecifics,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+      UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: reminder.repeat!
+          ? DateTimeComponents.time
+          : null,
+    );
+
+    print('Scheduled reminder: ${reminder.message} at $scheduledDate');
   }
 
-  RepeatInterval _getRepeatInterval(String frequency) {
-    switch (frequency.toLowerCase()) {
-      case 'daily':
-        return RepeatInterval.daily;
-      case 'weekly':
-        return RepeatInterval.weekly;
-      default:
-        return RepeatInterval.daily;
-    }
-  }
-
-  Future<void> _triggerVibration() async {
-    if (await Vibration.hasVibrator() ?? false) {
-      await Vibration.vibrate(
-        pattern: [500, 1000, 500, 1000],
-        intensities: [128, 255, 128, 255],
-      );
-    }
-  }
-
-
-
+  // Cancel a specific reminder notification
   Future<void> cancelReminder(int id) async {
-    await _notificationsPlugin.cancel(id);
-    // Optionally remove from your backend as well
+    await flutterLocalNotificationsPlugin.cancel(id);
   }
 
+  // Cancel all reminder notifications
   Future<void> cancelAllReminders() async {
-    await _notificationsPlugin.cancelAll();
-    // Optionally remove all from your backend as well
+    await flutterLocalNotificationsPlugin.cancelAll();
+  }
+
+  // Convert API Reminder to local Reminder model if needed
+  Reminder convertFromApiModel(Reminder apiReminder) {
+    // Parse time from string - assuming format is "HH:mm"
+    final timeParts = apiReminder.time!.split(':');
+    final hour = int.parse(timeParts[0]);
+    final minute = int.parse(timeParts[1]);
+
+    return Reminder(
+      id: apiReminder.id,
+      message: apiReminder.message ?? '',
+      repeat: apiReminder.repeat ?? false,
+      time: DateTime(1, 1, 1, hour, minute).toString(),
+      fromDate: DateTime.parse(apiReminder.fromDate!).toString(),
+      toDate: apiReminder.toDate != null && apiReminder.toDate!.isNotEmpty
+          ? DateTime.parse(apiReminder.toDate!).toString()
+          : null,
+      // Default or map from API if available
+    );
   }
 }
