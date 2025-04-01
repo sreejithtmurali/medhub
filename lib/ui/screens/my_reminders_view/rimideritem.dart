@@ -1,62 +1,115 @@
-import 'dart:ui';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:medhub/models/allriminders/Data.dart';
 
-
+import '../../../models/allriminders/Data.dart';
 
 class ReminderListItem extends StatelessWidget {
-  final Riminder reminder;
+  final Riminder? reminder;
   final VoidCallback onDelete;
+  final VoidCallback? onEdit;
 
   const ReminderListItem({
     Key? key,
     required this.reminder,
     required this.onDelete,
+    this.onEdit,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.blue[50],
+      elevation: 2,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: ListTile(
-        leading: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.medical_information_outlined,color: Colors.lightBlueAccent,),
-          ],
-        ),
-        title: Text(
-          reminder!.message!,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Column(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 4),
-            Text(
-              'Time: ${reminder!.time!} - ${reminder!.repeat==true?"Periodic" : "One-time"}  ',
-              style: const TextStyle(fontSize: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Message/Title
+                Expanded(
+                  child: Text(
+                    reminder?.message ?? 'No message',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                // Actions
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit, color: Colors.blue),
+                      onPressed: onEdit,
+                      tooltip: 'Edit',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: onDelete,
+                      tooltip: 'Delete',
+                    ),
+                  ],
+                ),
+              ],
             ),
-            Text(
-              'Date: ${(reminder!.fromDate)}${reminder.toDate != null ? " to ${(reminder.toDate!)}" : ""}',
-              style: const TextStyle(fontSize: 12),
+            const SizedBox(height: 12),
+            // Time info
+            Row(
+              children: [
+                const Icon(Icons.access_time, size: 16, color: Colors.grey),
+                const SizedBox(width: 8),
+                Text(
+                  reminder?.time ?? 'No time set',
+                  style: TextStyle(color: Colors.grey[700]),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // Date info
+            Row(
+              children: [
+                const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                const SizedBox(width: 8),
+                Text(
+                  'From: ${reminder?.fromDate ?? 'Not set'}',
+                  style: TextStyle(color: Colors.grey[700]),
+                ),
+              ],
+            ),
+            if (reminder?.repeat == true && reminder?.toDate != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  children: [
+                    const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                    const SizedBox(width: 8),
+                    Text(
+                      'To: ${reminder?.toDate}',
+                      style: TextStyle(color: Colors.grey[700]),
+                    ),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 8),
+            // Repeat info
+            Row(
+              children: [
+                const Icon(Icons.repeat, size: 16, color: Colors.grey),
+                const SizedBox(width: 8),
+                Text(
+                  reminder?.repeat == true ? 'Repeating' : 'One-time',
+                  style: TextStyle(color: Colors.grey[700]),
+                ),
+              ],
             ),
           ],
         ),
-
-        trailing: IconButton(
-          icon: const Icon(Icons.delete, color: Colors.red),
-          onPressed: onDelete,
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        isThreeLine: true,
       ),
     );
   }
-
 }

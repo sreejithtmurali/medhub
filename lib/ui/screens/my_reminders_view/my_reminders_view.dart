@@ -73,16 +73,21 @@ class MyRemindersView extends StatelessWidget {
                   ? const Center(child: CircularProgressIndicator())
                   : viewModel.reminders!.isEmpty
                   ? const Center(child: Text('No reminders yet. Create one!'))
-                  : ListView.builder(
-                itemCount: viewModel.reminders!.length,
-                itemBuilder: (context, index) {
-                  final reminder = viewModel.reminders![index];
-                  return ReminderListItem(
-                    reminder: reminder,
-                    onDelete: () => viewModel.deleteReminder(reminder!.id!),
-                  );
+                  : RefreshIndicator(
+                onRefresh: (){
+                  return viewModel.init();
                 },
-              ),
+                    child: ListView.builder(
+                                    itemCount: viewModel.reminders!.length,
+                                    itemBuilder: (context, index) {
+                    final reminder = viewModel.reminders![index];
+                    return ReminderListItem(
+                      reminder: reminder,
+                      onDelete: () => viewModel.deleteReminder(reminder!.id!),
+                    );
+                                    },
+                                  ),
+                  ),
               floatingActionButton: FloatingActionButton(
                 backgroundColor: Colors.blue,
                 onPressed: viewModel.navigateToAddReminder,

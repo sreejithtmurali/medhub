@@ -22,7 +22,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final reminderService = ReminderService();
-  await reminderService.initialize();
+  await reminderService.init();
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
