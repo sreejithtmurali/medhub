@@ -23,11 +23,11 @@ class HomeViewModel extends BaseViewModel {
   List<Hospital>?hospitallist=[];
   init() async {
     getalldoctors();
-    hospitallist=await apiService.getallHospitals();
+    hospitallist=await apiService.getallHospitals()??[];
     notifyListeners();
     setBusy(true);
     try {
-      mybookings= await apiService.getallAppointment();
+      mybookings= await apiService.getallAppointment()??[];
       notifyListeners();
 
     } catch (e) {

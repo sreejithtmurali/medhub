@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:medhub/models/allbookings/GetAllBookings.dart';
 import 'package:stacked/stacked.dart';
 
+import '../../../models/allnoti/Data.dart';
 import 'my_noti_view_model.dart';
 
 class NotifictionsView extends StatelessWidget {
@@ -33,7 +34,7 @@ class NotifictionsView extends StatelessWidget {
   }
 
   Widget _buildBookingsList(NotifictionsViewModel viewModel) {
-    if (viewModel.mybookings!.isEmpty) {
+    if (viewModel.notifications!.isEmpty) {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -54,95 +55,29 @@ class NotifictionsView extends StatelessWidget {
       );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: viewModel.mybookings!.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final booking = viewModel.mybookings![index];
-        return _buildBookingCard(booking,viewModel);
+    return RefreshIndicator(
+      onRefresh: (){
+        return viewModel.initialize();
       },
-    );
-  }
-
-  Widget _buildBookingCard(GetAllBookings booking, NotifictionsViewModel viewModel) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
+      child: ListView.separated(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    '${booking.doctor!.name}',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade100,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '${booking.doctor!.department}',
-                    style: TextStyle(
-                      color: Colors.blue.shade800,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
+        itemCount: viewModel.notifications!.length,
+        separatorBuilder: (context, index) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final booking = viewModel.notifications![index];
+          return ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Colors.blue,
+              child: Text("${index+1}",style: TextStyle(color: Colors.white),),
             ),
-            const SizedBox(height: 12),
-            _buildInfoRow(Icons.confirmation_number, 'Booking ID: ${booking.id}'),
-            const SizedBox(height: 8),
-            _buildInfoRow(
-              Icons.calendar_today,
-              'Date: ${booking.selectedDate}',
-            ),
-            const SizedBox(height: 8),
-            _buildInfoRow(Icons.access_time, 'Time: ${booking.selectedTime}'),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                OutlinedButton(
-                  onPressed: () {
-                    viewModel.cancelBooking(booking);
-                  },
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Colors.red.shade300),
-                  ),
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(color: Colors.red.shade700),
-                  ),
-                ),
-                // const SizedBox(width: 8),
-                // ElevatedButton(
-                //   onPressed: () {},
-                //   style: ElevatedButton.styleFrom(
-                //     backgroundColor: Colors.blue,
-                //   ),
-                //   child: const Text('Reschedule',style: TextStyle(color: Colors.white),),
-                // ),
-              ],
-            ),
-          ],
-        ),
+            title: Text("${booking.message}"),
+          );
+        },
       ),
     );
   }
 
+  
   Widget _buildInfoRow(IconData icon, String text) {
     return Row(
       children: [

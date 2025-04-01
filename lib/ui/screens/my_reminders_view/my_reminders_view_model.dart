@@ -15,9 +15,11 @@ class MyRemindersViewModel extends BaseViewModel {
   Future<void> init() async {
     setBusy(true);
     reminders=await apiService.getallrimiders();
+
     setBusy(false);
     notifyListeners();
   }
+
 
   void navigateToAddReminder() {
     navigationService.navigateTo(Routes.addReminderView);

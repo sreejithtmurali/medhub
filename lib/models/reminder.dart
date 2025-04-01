@@ -8,7 +8,7 @@ class Reminder {
   final bool isPeriodic;
   final DateTime time;
   final DateTime fromDate;
-  final DateTime? toDate; // Optional for non-periodic reminders
+  final DateTime toDate; // Optional for non-periodic reminders
   final ReminderPriority priority;
 
   Reminder({
@@ -17,7 +17,7 @@ class Reminder {
     required this.isPeriodic,
     required this.time,
     required this.fromDate,
-    this.toDate,
+    required this.toDate,
     required this.priority,
   }) : id = id ?? const Uuid().v4();
 
@@ -28,7 +28,7 @@ class Reminder {
       'isPeriodic': isPeriodic,
       'time': time.toIso8601String(),
       'fromDate': fromDate.toIso8601String(),
-      'toDate': toDate?.toIso8601String(),
+      'toDate': toDate.toIso8601String(),
       'priority': priority.index,
     };
   }
@@ -40,7 +40,7 @@ class Reminder {
       isPeriodic: json['isPeriodic'],
       time: DateTime.parse(json['time']),
       fromDate: DateTime.parse(json['fromDate']),
-      toDate: json['toDate'] != null ? DateTime.parse(json['toDate']) : null,
+      toDate: DateTime.parse(json['toDate']) ,
       priority: ReminderPriority.values[json['priority']],
     );
   }

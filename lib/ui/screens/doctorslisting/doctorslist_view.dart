@@ -23,7 +23,7 @@ class DoctorsList extends StatelessWidget {
               icon: Icon(Icons.arrow_back, color: Colors.white),
             ),
             backgroundColor: Colors.blue,
-            title: Text("Popular Doctor", style: TextStyle(color: Colors.white)),
+            title: Text("Doctors", style: TextStyle(color: Colors.white)),
           ),
           backgroundColor: Colors.white,
           body: SafeArea(
@@ -39,7 +39,7 @@ class DoctorsList extends StatelessWidget {
                     decoration: InputDecoration(
                       hintText: 'Search doctor by name, department, or hospital...',
                       prefixIcon: const Icon(Icons.search),
-                      suffixIcon: const Icon(Icons.mic),
+                      //suffixIcon: const Icon(Icons.mic),
                       filled: true,
                       fillColor: Colors.grey[100],
                       border: OutlineInputBorder(

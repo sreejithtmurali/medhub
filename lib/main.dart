@@ -1,11 +1,14 @@
 import 'dart:io';
 
+import 'package:alarm/alarm.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:medhub/services/reminder_service.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:statusbarz/statusbarz.dart';
 
@@ -21,24 +24,22 @@ import 'ui/widgets/setup_dependencies.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final reminderService = ReminderService();
-  await reminderService.initialize();
+  // Initialize before any instantiation
+  await ReminderService.initialize();
+  await ReminderService().testAlarm(); // Test alarm after initialization
 
-  SystemChrome.setPreferredOrientations([
+  await requestDNDPermission();
+
+  await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  if (!kIsWeb) {
-    if (Platform.isAndroid) {
-      ByteData data = await PlatformAssetBundle().load(
-        Assets.ca.letsEncryptR3,
-      );
-      SecurityContext.defaultContext.setTrustedCertificatesBytes(
-        data.buffer.asUint8List(),
-      );
-    }
+  if (!kIsWeb && Platform.isAndroid) {
+    ByteData data = await PlatformAssetBundle().load(Assets.ca.letsEncryptR3);
+    SecurityContext.defaultContext.setTrustedCertificatesBytes(data.buffer.asUint8List());
   }
+
   setupDependencies();
   runApp(const MyApp());
 }
@@ -62,7 +63,6 @@ class MyApp extends StatelessWidget {
           builder: FlutterSmartDialog.init(
             builder: (context, child) {
               ScreenSize.init(context);
-
               return MediaQuery(
                 data: MediaQuery.of(context).copyWith(textScaleFactor: 1),
                 child: child!,
@@ -75,10 +75,16 @@ class MyApp extends StatelessWidget {
           onGenerateRoute: StackedRouter().onGenerateRoute,
           navigatorObservers: [
             StackedService.routeObserver,
-            FlutterSmartDialog.observer
+            FlutterSmartDialog.observer,
           ],
         );
       },
     );
+  }
+}
+
+Future<void> requestDNDPermission() async {
+  if (await Permission.accessNotificationPolicy.isDenied) {
+    await Permission.accessNotificationPolicy.request();
   }
 }

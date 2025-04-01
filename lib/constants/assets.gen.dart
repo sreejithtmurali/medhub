@@ -19,27 +19,14 @@ class $AssetsCaGen {
   List<String> get values => [letsEncryptR3];
 }
 
-class $AssetsFontsGen {
-  const $AssetsFontsGen();
+class $AssetsIconGen {
+  const $AssetsIconGen();
 
-  /// File path: assets/fonts/Barlow-Bold.ttf
-  String get barlowBold => 'assets/fonts/Barlow-Bold.ttf';
-
-  /// File path: assets/fonts/Barlow-Light.ttf
-  String get barlowLight => 'assets/fonts/Barlow-Light.ttf';
-
-  /// File path: assets/fonts/Barlow-Medium.ttf
-  String get barlowMedium => 'assets/fonts/Barlow-Medium.ttf';
-
-  /// File path: assets/fonts/Barlow-Regular.ttf
-  String get barlowRegular => 'assets/fonts/Barlow-Regular.ttf';
-
-  /// File path: assets/fonts/Barlow-SemiBold.ttf
-  String get barlowSemiBold => 'assets/fonts/Barlow-SemiBold.ttf';
+  /// File path: assets/icon/app_icon.png
+  AssetGenImage get appIcon => const AssetGenImage('assets/icon/app_icon.png');
 
   /// List of all assets
-  List<String> get values =>
-      [barlowBold, barlowLight, barlowMedium, barlowRegular, barlowSemiBold];
+  List<AssetGenImage> get values => [appIcon];
 }
 
 class $AssetsImagesGen {
@@ -60,12 +47,23 @@ class $AssetsImagesGen {
   List<AssetGenImage> get values => [logo, prescription, whatsapp];
 }
 
+class $AssetsSoundsGen {
+  const $AssetsSoundsGen();
+
+  /// File path: assets/sounds/notification_sound.mp3
+  String get notificationSound => 'assets/sounds/notification_sound.mp3';
+
+  /// List of all assets
+  List<String> get values => [notificationSound];
+}
+
 class Assets {
   const Assets._();
 
   static const $AssetsCaGen ca = $AssetsCaGen();
-  static const $AssetsFontsGen fonts = $AssetsFontsGen();
+  static const $AssetsIconGen icon = $AssetsIconGen();
   static const $AssetsImagesGen images = $AssetsImagesGen();
+  static const $AssetsSoundsGen sounds = $AssetsSoundsGen();
 }
 
 class AssetGenImage {

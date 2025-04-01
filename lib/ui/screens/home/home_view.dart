@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:medhub/app/app.router.dart';
+import 'package:medhub/app/utils.dart';
 import 'package:medhub/models/getalldoctors/Data.dart';
 import 'package:stacked/stacked.dart';
 
@@ -33,7 +35,12 @@ class HomeView extends StatelessWidget {
 
                     // Search Bar
                     TextField(
+                      readOnly: true,
+                      onTap: (){
+                        navigationService.navigateTo(Routes.doctorsList);
+                      },
                       decoration: InputDecoration(
+
                         hintText: 'Search doctor by name...',
                         prefixIcon: const Icon(Icons.search),
                         border: OutlineInputBorder(
@@ -51,14 +58,16 @@ class HomeView extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          'Today Appointments',
+                          'My Appointments',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            navigationService.navigateTo(Routes.myBookingsView);
+                          },
                           child: const Text('See all'),
                         ),
                       ],
@@ -67,10 +76,11 @@ class HomeView extends StatelessWidget {
 
                     // Appointment Cards
                     SizedBox(
-                      height: 250,
+                      height: 180,
+                      width: ScreenSize.width,
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.all(16),
+                       // padding: const EdgeInsets.all(16),
                         itemCount: model.mybookings!.length,
                         separatorBuilder: (context, index) => const SizedBox(width: 12),
                         itemBuilder: (context, index) {
@@ -533,72 +543,76 @@ class HomeView extends StatelessWidget {
       ),
     );
   }
-}
-
-Widget _buildBookingCard(GetAllBookings booking, HomeViewModel viewModel) {
-  return Card(
-    elevation: 3,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+  Widget _buildBookingCard(GetAllBookings booking, HomeViewModel viewModel) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: SizedBox(
+        width: ScreenSize.width-50,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  '${booking.doctor!.name}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${booking.doctor!.name}',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Container(
-                padding:
+                  Container(
+                    padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade100,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  '${booking.doctor!.department}',
-                  style: TextStyle(
-                    color: Colors.blue.shade800,
-                    fontWeight: FontWeight.w500,
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade100,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${booking.doctor!.department}',
+                      style: TextStyle(
+                        color: Colors.blue.shade800,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
+              const SizedBox(height: 12),
+              _buildInfoRow(Icons.confirmation_number, 'Booking ID: ${booking.id}'),
+              const SizedBox(height: 8),
+              _buildInfoRow(
+                Icons.calendar_today,
+                'Date: ${booking.selectedDate}',
+              ),
+              const SizedBox(height: 8),
+              _buildInfoRow(Icons.access_time, 'Time: ${booking.selectedTime}'),
+              const SizedBox(height: 16),
             ],
           ),
-          const SizedBox(height: 12),
-          _buildInfoRow(Icons.confirmation_number, 'Booking ID: ${booking.id}'),
-          const SizedBox(height: 8),
-          _buildInfoRow(
-            Icons.calendar_today,
-            'Date: ${booking.selectedDate}',
-          ),
-          const SizedBox(height: 8),
-          _buildInfoRow(Icons.access_time, 'Time: ${booking.selectedTime}'),
-          const SizedBox(height: 16),
-
-        ],
+        ),
       ),
-    ),
-  );
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: Colors.grey.shade600),
+        const SizedBox(width: 8),
+        Text(
+          text,
+          style: TextStyle(color: Colors.grey.shade800),
+        ),
+      ],
+    );
+  }
 }
 
-Widget _buildInfoRow(IconData icon, String text) {
-  return Row(
-    children: [
-      Icon(icon, size: 16, color: Colors.grey.shade600),
-      const SizedBox(width: 8),
-      Text(
-        text,
-        style: TextStyle(color: Colors.grey.shade800),
-      ),
-    ],
-  );
-}
+
+

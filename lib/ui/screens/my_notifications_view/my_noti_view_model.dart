@@ -6,15 +6,16 @@ import '../../../app/app.locator.dart';
 import '../../../app/app.router.dart';
 import '../../../app/utils.dart';
 import '../../../models/allbookings/GetAllBookings.dart';
+import '../../../models/allnoti/Data.dart';
 
 
 class NotifictionsViewModel extends BaseViewModel {
-  List<dynamic>?mybookings=[];
+  List<Notification2>?notifications=[];
 
   Future<void> initialize() async {
     setBusy(true);
     try {
-     await apiService.getNotifications();
+      notifications=await apiService.getNotifications();
      notifyListeners();
 
     } catch (e) {
@@ -30,13 +31,5 @@ class NotifictionsViewModel extends BaseViewModel {
 
 
 
-  // Cancel a booking
-  Future<bool?> cancelBooking(GetAllBookings bookingId) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    bool? status=await apiService.deletebooking(bookingId.id!);
-    if(status==true){
-      mybookings?.remove(bookingId);
-    }
 
-  }
 }

@@ -6,6 +6,7 @@ import 'package:stacked/stacked.dart';
 
 import '../../../app/app.router.dart';
 import '../../../app/utils.dart';
+import '../../../services/reminder_service.dart';
 
 class SplashViewModel extends BaseViewModel {
   Timer? _timer;
@@ -13,7 +14,6 @@ class SplashViewModel extends BaseViewModel {
 
 
   init() async {
-
 
     startTimer();
 
